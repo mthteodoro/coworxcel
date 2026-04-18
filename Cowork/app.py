@@ -8,62 +8,38 @@ from io import BytesIO
 # =========================
 st.set_page_config(
     page_title="AutoChart",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# =========================
-# CSS CUSTOM (PREMIUM LOOK)
-# =========================
-st.markdown("""
-<style>
-.main {
-    background-color: #0e1117;
-}
-h1, h2, h3 {
-    color: #ffffff;
-}
-.stButton>button {
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 8px;
-    padding: 10px;
-    font-weight: bold;
-}
-.stSelectbox label {
-    color: #cccccc;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# =========================
-# SIDEBAR
-# =========================
-st.sidebar.title("AutoChart")
-st.sidebar.markdown("Visualização de dados inteligente")
-
-uploaded_file = st.sidebar.file_uploader(
-    "Envie sua planilha",
-    type=["xlsx"]
+    layout="wide"
 )
 
 # =========================
 # HEADER
 # =========================
-st.title("AutoChart")
-st.markdown("### Transforme dados em decisões em segundos")
+st.markdown("# AutoChart")
+st.markdown("### Visualize dados de forma simples e rápida")
+st.markdown("---")
 
 # =========================
-# APP
+# SIDEBAR
+# =========================
+st.sidebar.header("Configuração")
+
+uploaded_file = st.sidebar.file_uploader(
+    "Envie sua planilha Excel",
+    type=["xlsx"]
+)
+
+# =========================
+# MAIN
 # =========================
 if uploaded_file:
     try:
+        # leitura
         excel = pd.ExcelFile(uploaded_file)
         sheet = st.sidebar.selectbox("Escolha a aba", excel.sheet_names)
         df = excel.parse(sheet)
 
         # =========================
-        # LIMPEZA
+        # LIMPEZA INTELIGENTE
         # =========================
         df = df.dropna(how='all')
         df.columns = df.columns.str.strip()
@@ -71,7 +47,9 @@ if uploaded_file:
         for col in df.columns:
             if df[col].dtype == 'object':
                 df[col] = df[col].astype(str).str.strip()
-                df[col] = df[col].replace(['', 'nan', 'None', '-', 'N/A'], None)
+                df[col] = df[col].replace(
+                    ['', 'nan', 'None', '-', 'N/A'], None
+                )
 
             df[col] = pd.to_numeric(df[col], errors='ignore')
 
@@ -81,12 +59,13 @@ if uploaded_file:
                 pass
 
         # =========================
-        # LAYOUT
+        # LAYOUT DASHBOARD
         # =========================
         col1, col2 = st.columns([1, 2])
 
+        # ===== CONFIG =====
         with col1:
-            st.markdown("## Configuração")
+            st.subheader("Configuração do gráfico")
 
             numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
             all_cols = df.columns.tolist()
@@ -94,8 +73,8 @@ if uploaded_file:
             if len(numeric_cols) == 0:
                 st.error("Nenhuma coluna numérica encontrada")
             else:
-                x = st.selectbox("Eixo X", all_cols)
-                y = st.selectbox("Eixo Y", numeric_cols)
+                x = st.selectbox("Coluna base (eixo X)", all_cols)
+                y = st.selectbox("Coluna de valores (eixo Y)", numeric_cols)
 
                 tipo = st.selectbox(
                     "Tipo de gráfico",
@@ -104,8 +83,9 @@ if uploaded_file:
 
                 gerar = st.button("Gerar gráfico")
 
+        # ===== RESULTADO =====
         with col2:
-            st.markdown("## Visualização")
+            st.subheader("Visualização")
 
             st.dataframe(df.head())
 
@@ -116,10 +96,13 @@ if uploaded_file:
 
                 if tipo == "Linha":
                     ax.plot(df_plot[x], df_plot[y])
+
                 elif tipo == "Barra":
                     ax.bar(df_plot[x], df_plot[y])
+
                 elif tipo == "Dispersão":
                     ax.scatter(df_plot[x], df_plot[y])
+
                 elif tipo == "Pizza":
                     data = df_plot.groupby(x)[y].sum().head(10)
                     ax.pie(data, labels=data.index, autopct='%1.1f%%')
@@ -128,6 +111,7 @@ if uploaded_file:
 
                 st.pyplot(fig)
 
+                # download
                 buffer = BytesIO()
                 fig.savefig(buffer, format="png")
                 buffer.seek(0)
@@ -140,20 +124,13 @@ if uploaded_file:
                 )
 
     except Exception as e:
-        st.error(f"Erro: {e}")
+        st.error(f"Erro ao processar arquivo: {e}")
 
 else:
-    st.markdown("""
-    ### Comece agora
-
-    1. Envie sua planilha no menu lateral  
-    2. Escolha os dados  
-    3. Gere gráficos automaticamente  
-
-    """)
+    st.info("Envie uma planilha na barra lateral para começar")
 
 # =========================
 # FOOTER
 # =========================
 st.markdown("---")
-st.caption("AutoChart • Data Visualization SaaS")
+st.caption("AutoChart • Ferramenta de visualização de dados")
