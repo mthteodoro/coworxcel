@@ -78,17 +78,26 @@ if uploaded_file:
             all_cols = df.columns.tolist()
 
             if len(numeric_cols) == 0:
-                st.error("Nenhuma coluna numérica encontrada na planilha")
-            else:
-                x = st.selectbox("Coluna base", all_cols)
-                y = st.selectbox("Coluna de valores", numeric_cols)
+    st.warning("Nenhuma coluna numérica encontrada. Modo análise de texto ativado.")
 
-                tipo = st.selectbox(
-                    "Tipo de gráfico",
-                    ["Linha", "Barra", "Dispersão", "Pizza"]
-                )
+    col_text = st.selectbox("Escolha uma coluna para análise", df.columns)
 
-                gerar = st.button("Gerar gráfico")
+    if st.button("Analisar dados"):
+
+        contagem = df[col_text].value_counts().reset_index()
+        contagem.columns = [col_text, "Quantidade"]
+
+        st.write("Distribuição dos dados:")
+        st.dataframe(contagem)
+
+        fig = px.bar(contagem, x=col_text, y="Quantidade")
+
+        fig.update_layout(
+            template="plotly_dark",
+            title=f"Distribuição de {col_text}"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
 
         # ===== RESULTADO =====
         with col2:
