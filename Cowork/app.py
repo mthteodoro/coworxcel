@@ -5,12 +5,12 @@ import plotly.express as px
 # =========================
 # CONFIG
 # =========================
-st.set_page_config(page_title="Coworxcel", layout="wide")
+st.set_page_config(page_title="CoWorxcel", layout="wide")
 
 # =========================
 # HEADER
 # =========================
-st.markdown("# coworxcel")
+st.markdown("# CoWorxcel")
 st.markdown("### Transforme planilhas em gráficos automaticamente")
 st.markdown("---")
 
@@ -80,8 +80,8 @@ if uploaded_file:
             if len(numeric_cols) == 0:
                 st.error("Nenhuma coluna numérica encontrada na planilha")
             else:
-                x = st.selectbox("Coluna base (eixo X)", all_cols)
-                y = st.selectbox("Coluna de valores (eixo Y)", numeric_cols)
+                x = st.selectbox("Coluna base", all_cols)
+                y = st.selectbox("Coluna de valores", numeric_cols)
 
                 tipo = st.selectbox(
                     "Tipo de gráfico",
@@ -123,7 +123,7 @@ if uploaded_file:
         st.error(f"Erro ao processar arquivo: {e}")
 
 else:
-    st.info("Envie uma planilha na barra lateral para começar")
+    st.info("Envie sua planilha na barra lateral")
 
 # =========================
 # FOOTER
