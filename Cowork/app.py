@@ -5,12 +5,12 @@ import plotly.express as px
 # =========================
 # CONFIG
 # =========================
-st.set_page_config(page_title="AutoChart", layout="wide")
+st.set_page_config(page_title="coworxcel", layout="wide")
 
 # =========================
 # HEADER
 # =========================
-st.markdown("# AutoChart")
+st.markdown("# coworxcel")
 st.markdown("### Transforme planilhas em gráficos automaticamente")
 st.markdown("---")
 
