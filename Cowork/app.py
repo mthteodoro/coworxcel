@@ -1,16 +1,22 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from io import BytesIO
 
-st.set_page_config(page_title="coworxcel", layout="wide")
+# =========================
+# CONFIG
+# =========================
+st.set_page_config(page_title="AutoChart", layout="wide")
 
+# =========================
 # HEADER
-st.markdown("# coworxcel")
-st.markdown("### Visualize dados de forma moderna e interativa")
+# =========================
+st.markdown("# AutoChart")
+st.markdown("### Transforme planilhas em gráficos automaticamente")
 st.markdown("---")
 
+# =========================
 # SIDEBAR
+# =========================
 st.sidebar.header("Configuração")
 
 uploaded_file = st.sidebar.file_uploader(
@@ -18,28 +24,51 @@ uploaded_file = st.sidebar.file_uploader(
     type=["xlsx"]
 )
 
+# =========================
+# MAIN
+# =========================
 if uploaded_file:
     try:
         excel = pd.ExcelFile(uploaded_file)
         sheet = st.sidebar.selectbox("Escolha a aba", excel.sheet_names)
         df = excel.parse(sheet)
 
-        # LIMPEZA
+        # =========================
+        # LIMPEZA AVANÇADA
+        # =========================
         df = df.dropna(how='all')
         df.columns = df.columns.str.strip()
 
         for col in df.columns:
+
+            # tratar texto
             if df[col].dtype == 'object':
                 df[col] = df[col].astype(str).str.strip()
-                df[col] = df[col].replace(['', 'nan', 'None', '-', 'N/A'], None)
 
+                # padrão brasileiro → número
+                df[col] = df[col].str.replace('.', '', regex=False)
+                df[col] = df[col].str.replace(',', '.', regex=False)
+
+                df[col] = df[col].replace(
+                    ['', 'nan', 'None', '-', 'N/A'], None
+                )
+
+            # converter para número
             df[col] = pd.to_numeric(df[col], errors='ignore')
 
+            # tentar converter para data
             try:
                 df[col] = pd.to_datetime(df[col])
             except Exception:
                 pass
 
+        # DEBUG (pode remover depois)
+        st.write("Tipos de dados detectados:")
+        st.write(df.dtypes)
+
+        # =========================
+        # LAYOUT
+        # =========================
         col1, col2 = st.columns([1, 2])
 
         # CONFIG
@@ -50,7 +79,7 @@ if uploaded_file:
             all_cols = df.columns.tolist()
 
             if len(numeric_cols) == 0:
-                st.error("Nenhuma coluna numérica encontrada")
+                st.error("Nenhuma coluna numérica válida encontrada")
             else:
                 x = st.selectbox("Eixo X", all_cols)
                 y = st.selectbox("Eixo Y", numeric_cols)
@@ -71,9 +100,6 @@ if uploaded_file:
             if 'gerar' in locals() and gerar:
                 df_plot = df.dropna(subset=[x, y])
 
-                # =========================
-                # GRÁFICOS MODERNOS
-                # =========================
                 if tipo == "Linha":
                     fig = px.line(df_plot, x=x, y=y)
 
@@ -95,10 +121,13 @@ if uploaded_file:
                 st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
-        st.error(f"Erro: {e}")
+        st.error(f"Erro ao processar arquivo: {e}")
 
 else:
-    st.info("Envie uma planilha para começar")
+    st.info("Envie uma planilha na barra lateral para começar")
 
+# =========================
+# FOOTER
+# =========================
 st.markdown("---")
 st.caption("AutoChart • Dashboard de dados")
